@@ -1,0 +1,7 @@
+*.pas text eol=crlf
+*.dfm text eol=crlf
+*.dpk text eol=crlf
+*.dpr text eol=crlf
+*.md text eol=crlf
+*.dcr binary
+*.res binary

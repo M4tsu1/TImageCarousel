@@ -1,0 +1,39 @@
+# Saídas de compilação
+*.dcu
+*.exe
+*.dll
+*.bpl
+*.bpi
+*.dcp
+*.so
+*.apk
+*.drc
+*.map
+*.dres
+*.rsm
+*.tds
+*.dcp
+*.lib
+*.a
+*.o
+*.ocx
+Win32/
+Win64/
+Debug/
+Release/
+
+# Arquivos locais da IDE
+*.local
+*.identcache
+*.projdata
+*.tvsconfig
+*.dsk
+*.stat
+*.dproj.local
+__history/
+__recovery/
+*.~*
+*.bak
+
+# Recurso gerado pela IDE para o projeto da demo (o .dcr do componente é versionado)
+Demo/*.res
