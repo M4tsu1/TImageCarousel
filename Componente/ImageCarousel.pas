@@ -10,7 +10,7 @@
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes, System.Math,
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes, System.Types, System.Math,
   Vcl.Graphics, Vcl.Controls, Vcl.ExtCtrls, Vcl.Forms,
   Vcl.Imaging.pngimage, Vcl.Imaging.jpeg, Vcl.Imaging.GIFImg;
 
@@ -33,6 +33,7 @@ type
     FTag: NativeInt;
     FData: TObject;
     FCache: TBitmap; // imagem já redimensionada para o tamanho atual do card
+    FRendering: Integer; // > 0 enquanto o cache é montado
     procedure SetTitle(const Value: string);
     procedure SetCategory(const Value: string);
     procedure SetDescription(const Value: string);
@@ -313,6 +314,10 @@ end;
 
 procedure TCarouselItem.PictureChanged(Sender: TObject);
 begin
+  // JPEG e outros formatos avisam "mudei" ao decodificar no primeiro desenho;
+  // esse aviso vem da montagem do cache e não é troca de imagem
+  if FRendering > 0 then
+    Exit;
   InvalidateCache;
   Changed(False);
 end;
@@ -542,14 +547,29 @@ end;
 { ---------------------------------------------------------------- desenho }
 
 function TImageCarousel.GetCache(AItem: TCarouselItem; AWidth, AHeight: Integer): TBitmap;
+var
+  Bmp: TBitmap;
 begin
   if (AItem.FCache = nil) or (AItem.FCache.Width <> AWidth) or (AItem.FCache.Height <> AHeight) then
   begin
     FreeAndNil(AItem.FCache);
-    AItem.FCache := TBitmap.Create;
-    AItem.FCache.PixelFormat := pf24bit;
-    AItem.FCache.SetSize(AWidth, AHeight);
-    RenderImage(AItem, AItem.FCache);
+    // monta num bitmap local e só guarda no item quando estiver pronto
+    Bmp := TBitmap.Create;
+    try
+      Bmp.PixelFormat := pf24bit;
+      Bmp.SetSize(AWidth, AHeight);
+      Inc(AItem.FRendering);
+      try
+        RenderImage(AItem, Bmp);
+      finally
+        Dec(AItem.FRendering);
+      end;
+    except
+      Bmp.Free;
+      raise;
+    end;
+    FreeAndNil(AItem.FCache);
+    AItem.FCache := Bmp;
   end;
   Result := AItem.FCache;
 end;
